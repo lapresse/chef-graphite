@@ -1,0 +1,4 @@
+check process carbon with pidfile /opt/graphite/storage/carbon-cache-a.pid
+  start program = "/opt/graphite/bin/carbon-cache.py start"
+  stop program = "/opt/graphite/bin/carbon-cache.py stop"
+  if 5 restarts within 5 cycles then timeout

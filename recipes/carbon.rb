@@ -1,4 +1,4 @@
-#
+
 # Cookbook Name:: graphite
 # Recipe:: carbon
 #
@@ -7,21 +7,40 @@
 # All rights reserved - Do Not Redistribute
 
 if node[:platform_family] == 'rhel'
-  package 'python-carbon' do
+  package 'git' do
   end
 
-  template '/etc/carbon/carbon.conf' do
+  git '/var/tmp/carbon' do
+    repository 'git://github.com/graphite-project/carbon.git'
+    revision node[:carbon][:version]
+  end
+
+  execute 'install_carbon' do
+    cwd '/var/tmp'
+    command 'pushd carbon && python setup.py install && popd'
+    creates '/opt/graphite/storage'
+  end
+
+  execute 'configure_carbon' do
+    command 'pushd /opt/graphite/conf && cp carbon.conf.example carbon.conf && cp storage-schemas.conf.example storage-schemas.conf'
+    creates '/opt/graphite/conf/carbon.conf'
+  end
+
+  template '/opt/graphite/conf/storage-schemas.conf' do
     mode 0644
-    notifies :restart, 'service[carbon-aggregator]'
-    notifies :restart, 'service[carbon-cache]'
   end
 
-  service 'carbon-aggregator' do
+  package 'monit' do
+  end
+
+  service 'monit' do
     action [ :start, :enable ]
   end
 
-  service 'carbon-cache' do
-    action [ :start, :enable ]
+  template '/etc/monit.d/carbon' do
+    source 'carbon.monit.erb'
+    mode 0644
+    notifies :restart, 'service[monit]'
   end
 
 else

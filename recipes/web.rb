@@ -42,6 +42,11 @@ execute 'copy_graphite_cfg' do
   creates '/opt/graphite/conf/graphite.wsgi'
 end
 
+directory '/opt/graphite/storage/log/webapp' do
+  owner 'apache'
+  group 'apache'
+end
+
 execute 'change_owner' do
   command 'chown -R apache. /opt/graphite/storage/'
 end
